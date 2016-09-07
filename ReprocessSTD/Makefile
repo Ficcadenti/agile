@@ -17,7 +17,7 @@ CC = g++
 CP = /usr/bin/cp
 #PREFIX=/usr/agile
 TARGET = reprocess_sdt
-PREFIX=../../agile/agile-test
+PREFIX=../agile-test
 BINDIR=${PREFIX}/${TARGET}
 SUBDIR=./
 
@@ -43,6 +43,7 @@ clean:
 
 realclean:
 	$(RM) $(BINDIR)/$(TARGET)
+	$(RM) $(TARGET)
 
 install:
 	$(CP) $(TARGET) $(BINDIR)
