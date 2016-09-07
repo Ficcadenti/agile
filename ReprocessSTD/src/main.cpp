@@ -85,13 +85,15 @@ int main (int   argc, char *argv[])
 	    printf("---> file da elaborare = [%s]\n",nFile);
 	    
 	    
+	    printf("Step 1.1: Individua file drift.\n");
+	    
 	    printf("Step 2: Applica correttore.\n");
 	    
 	    
 	    printf("Step 3: Aggiorna link simbolici.\n");
 	    
 	    
-	    printf("Step 4: Aggiorna date su db-mysql.\n");
+	    printf("Step 4: Prendi key dal file fits.\n");
 	    
 	    sprintf(cmd,"fkeyprint %s+1 %s | grep = | cut -f2 -d \"'\" | cut -f1 -d \"/\"",nFile,DATE1);
 	    cout << "---> " << cmd << endl;
@@ -101,6 +103,8 @@ int main (int   argc, char *argv[])
 	    
 	    cout << "---> DATE = [" << DATE1 << "] = " << date1 << endl;
 	    
+	    
+	    printf("Step 5: aggiorna db-mysql.\n");
 	    
 	    printf("\n\n\n");
 	    printf("****************** Finish Reprocess STD!!! *******************");
