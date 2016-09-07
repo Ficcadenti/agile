@@ -82,6 +82,14 @@ int main (int   argc, char *argv[])
 	    cout << "HEADAS = " << headas << endl;
 	    
 	    printf("Step 1: Prendi elenco file da correggere dal db-mysql.\n");
+	    
+	    {
+	      strcpy(cmd,"mysql -u root -p'root' -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = 'FLG' AND datemin >= '2015-6-30' ORDER BY id\" agile3 -N | sed 's/\t/,/g' > fits_destinazione.txt");
+	      cout << "---> " << cmd << endl;
+	      result = exec(cmd);
+	      std::copy(result.begin(), result.end(), date1);
+	    }
+	    
 	    printf("---> file da elaborare = [%s]\n",nFile);
 	    
 	    
@@ -97,7 +105,6 @@ int main (int   argc, char *argv[])
 	    
 	    sprintf(cmd,"fkeyprint %s+1 %s | grep = | cut -f2 -d \"'\" | cut -f1 -d \"/\"",nFile,DATE1);
 	    cout << "---> " << cmd << endl;
-	    
 	    result = exec(cmd);
 	    std::copy(result.begin(), result.end(), date1);
 	    
@@ -105,6 +112,8 @@ int main (int   argc, char *argv[])
 	    
 	    
 	    printf("Step 5: aggiorna db-mysql.\n");
+	    
+	    cout << "---> " << cmd << endl;
 	    
 	    printf("\n\n\n");
 	    printf("****************** Finish Reprocess STD!!! *******************");

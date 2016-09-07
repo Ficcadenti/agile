@@ -27,7 +27,7 @@ LDFLAGS =
 
 
 SORGENTI 	=      $(SUBDIR)/src/main.cpp\
-				   $(SUBDIR)/src/reprocess_std.cpp
+			$(SUBDIR)/src/reprocess_std.cpp
 
 HEADERS =       $(SUBDIR)/inc/reprocess_sdd.h			
                 
