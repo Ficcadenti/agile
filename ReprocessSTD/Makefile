@@ -16,7 +16,7 @@
 CC = g++
 CP = /usr/bin/cp
 #PREFIX=/usr/agile
-TARGET = reprocess_sdt
+TARGET = reprocess_std
 PREFIX=../agile-test
 BINDIR=${PREFIX}/${TARGET}
 SUBDIR=./
