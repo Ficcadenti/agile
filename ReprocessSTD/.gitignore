@@ -4,6 +4,10 @@ reprocess_std
 # Kdevelop
 .kdev4/
 
+# File generatu a runtime
+*.csv
+*.sql
+
 ### C ###
 # Prerequisites
 *.d

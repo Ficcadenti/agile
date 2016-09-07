@@ -23,10 +23,13 @@
 #include <stdexcept>
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
+#include <fstream> //header necessario per ifstream!
 
 
-
-#define DATE1 "DATE"
+#define AGILES3_STORAGE "/home/raffo/agile/storage1/agile/agile3/"
+#define LISTA_FILE_CORR "file_corr.csv"
+#define DATE1 		"DATE"
 
 
 std::string exec(const char* cmd) {
@@ -57,20 +60,22 @@ int main (int   argc, char *argv[])
 	reprocess_sdd  _processSTD;
 	char* headas = getenv("HEADAS");
 	std::string result;
+	string s;
+	int cont;
 	
+	
+	cont=0;
+	char agiles3_path[100];
 	char nome_file[500];
-	char path_file[500];
 	char nFile[1000];
 	char date1[50];
 
 	char cmd[3000];
 	
+	strcpy(agiles3_path,AGILES3_STORAGE);
+
 	
-	
-	strcpy(nome_file,"PKP048495_1_3901_000_1473040447.flg");
-	strcpy(path_file,"/home/raffo/agile/agile-test/");
-	strcpy(nFile,path_file);
-	strcat(nFile,nome_file);
+	cout << "-----------------> nFile = " << nFile << endl;
 	
 	//mostra il valore della variabile HEADAS
 	
@@ -79,41 +84,61 @@ int main (int   argc, char *argv[])
 	    
 	    printf("****************** Start Reprocess STD!!! *******************\n\n\n");
 	    
-	    cout << "HEADAS = " << headas << endl;
 	    
-	    printf("Step 1: Prendi elenco file da correggere dal db-mysql.\n");
+	    printf("Step 0: Verifica environment Heasoft.\n");
+	    cout << "---> HEADAS = " << headas << endl;
 	    
+	    printf("\nStep 1: Prendi elenco file da correggere dal db-mysql.\n");
+	    /* Lancio select su mysqldb */
 	    {
-	      strcpy(cmd,"mysql -u root -p'root' -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = 'FLG' AND datemin >= '2015-6-30' ORDER BY id\" agile3 -N | sed 's/\t/,/g' > fits_destinazione.txt");
+	      sprintf(cmd,"mysql -u root -p'root' -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = 'FLG' AND datemin >= '2015-6-30' AND Filename='PKP048495_1_3901_000_1473040447.flg.gz' ORDER BY id\" agile3 -N | sed 's/\t/,/g' > %s",LISTA_FILE_CORR);
 	      cout << "---> " << cmd << endl;
 	      result = exec(cmd);
-	      std::copy(result.begin(), result.end(), date1);
 	    }
 	    
-	    printf("---> file da elaborare = [%s]\n",nFile);
+	    /* Scorro l'elenco dei record nel file generato 'fits_destinazione.txt'  */
+	    //printf("---> file da elaborare = [%s]\n",nFile);
 	    
+	    ifstream f;
+	    f.open(LISTA_FILE_CORR); //nome del file da aprire, si può mettere anche il percorso (es C:\\file.txt)
 	    
-	    printf("Step 1.1: Individua file drift.\n");
-	    
-	    printf("Step 2: Applica correttore.\n");
-	    
-	    
-	    printf("Step 3: Aggiorna link simbolici.\n");
-	    
-	    
-	    printf("Step 4: Prendi key dal file fits.\n");
-	    
-	    sprintf(cmd,"fkeyprint %s+1 %s | grep = | cut -f2 -d \"'\" | cut -f1 -d \"/\"",nFile,DATE1);
-	    cout << "---> " << cmd << endl;
-	    result = exec(cmd);
-	    std::copy(result.begin(), result.end(), date1);
-	    
-	    cout << "---> DATE = [" << DATE1 << "] = " << date1 << endl;
-	    
-	    
-	    printf("Step 5: aggiorna db-mysql.\n");
-	    
-	    cout << "---> " << cmd << endl;
+	    if(!f) 
+	    {
+		cout << "Il " << LISTA_FILE_CORR << "file non esiste!";
+		return -1;
+	    }
+	    else
+	    {
+
+		while(std::getline(f, s)) //fino a quando c'è qualcosa da leggere ..
+		{
+		    std::size_t pos = s.find(","); 
+		    std::string s1 = s.substr(pos+1);
+		    
+		    std::string s_id = s.substr(0,pos);
+		   
+		    std::copy(s1.begin(), s1.end(), nome_file);
+		    sprintf(nFile,"%s%s",agiles3_path,nome_file);
+		    
+		    
+		    cout<< cont++ << "---> Elaboro il file("<< s_id << "): " << s <<endl;
+		    printf("\nStep 1.2: Individua file drift.\n");
+		    printf("\nStep 1.3: Applica correttore.\n");
+		    printf("\nStep 1.4: Aggiorna link simbolici.\n");
+		    printf("\nStep 1.5: Prendi key dal file fits.\n");
+		    
+		    sprintf(cmd,"fkeyprint %s+1 %s | grep = | cut -f2 -d \"'\" | cut -f1 -d \"/\"",nFile,DATE1);
+		    cout << "---> " << cmd << endl;
+		    result = exec(cmd);
+		    std::copy(result.begin(), result.end()-1, date1);
+		
+		    cout << "---> DATE1 = [" << date1 << "]" << endl;
+		    
+		    printf("Step 1.6: aggiorna db-mysql.\n");
+		
+		}
+		f.close(); //chiude il file
+	    }
 	    
 	    printf("\n\n\n");
 	    printf("****************** Finish Reprocess STD!!! *******************");
