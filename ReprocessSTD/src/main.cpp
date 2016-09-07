@@ -29,6 +29,7 @@
 
 #define AGILES3_STORAGE "/home/raffo/agile/storage1/agile/agile3/"
 #define LISTA_FILE_CORR "file_corr.csv"
+#define UPDATE_DB_FILE  "update_db.sql"
 #define DATE1 		"DATE"
 
 
@@ -66,11 +67,11 @@ int main (int   argc, char *argv[])
 	
 	cont=0;
 	char agiles3_path[100];
-	char nome_file[500];
 	char nFile[1000];
 	char date1[50];
 
 	char cmd[3000];
+	char update_cmd[3000];
 	
 	strcpy(agiles3_path,AGILES3_STORAGE);
 
@@ -99,7 +100,9 @@ int main (int   argc, char *argv[])
 	    /* Scorro l'elenco dei record nel file generato 'fits_destinazione.txt'  */
 	    //printf("---> file da elaborare = [%s]\n",nFile);
 	    
-	    ifstream f;
+	    std::ifstream f;
+	    std::ofstream out(UPDATE_DB_FILE);
+    
 	    f.open(LISTA_FILE_CORR); //nome del file da aprire, si può mettere anche il percorso (es C:\\file.txt)
 	    
 	    if(!f) 
@@ -114,11 +117,10 @@ int main (int   argc, char *argv[])
 		{
 		    std::size_t pos = s.find(","); 
 		    std::string s1 = s.substr(pos+1);
-		    
 		    std::string s_id = s.substr(0,pos);
 		   
-		    std::copy(s1.begin(), s1.end(), nome_file);
-		    sprintf(nFile,"%s%s",agiles3_path,nome_file);
+
+		    sprintf(nFile,"%s%s",agiles3_path,s1.c_str());
 		    
 		    
 		    cout<< cont++ << "---> Elaboro il file("<< s_id << "): " << s <<endl;
@@ -134,11 +136,18 @@ int main (int   argc, char *argv[])
 		
 		    cout << "---> DATE1 = [" << date1 << "]" << endl;
 		    
-		    printf("Step 1.6: aggiorna db-mysql.\n");
-		
+		    sprintf(update_cmd,"update PIPE_ArchivedFile set datemin = '%s' where id=%s;\n",date1,s_id.c_str());
+		    
+		    out << update_cmd;
 		}
-		f.close(); //chiude il file
+		
+		out << "commit;";
+		
+		f.close(); //chiude il file di input
+		out.close(); // chiude il file di output
 	    }
+	    
+	    printf("Step 2: aggiorna db-mysql.\n");
 	    
 	    printf("\n\n\n");
 	    printf("****************** Finish Reprocess STD!!! *******************");
