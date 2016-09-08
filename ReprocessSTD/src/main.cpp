@@ -32,7 +32,9 @@
 #define MYSQL_HOST		"localhost"
 #define QUERY_DATE		"2015-6-30"
 #define QUERY_TYPE		"FLG"
-#define AGILES3_STORAGE 	"/home/raffo/agile/storage1/agile/agile3/"
+#define BASE_PATH		"/home/raffo/"
+#define AGILES3_STORAGE 	"agile/storage1/agile/agile3/"
+#define AGILES2_STORAGE 	"agile/storage1/agile/agile2/"
 #define LISTA_FILE_CORR 	"file_corr.csv"
 #define UPDATE_DB_FILE  	"update_db.sql"
 #define DATE 			"DATE"
@@ -54,6 +56,7 @@ int main (int   argc, char *argv[])
 	string 	s;
 	char 	agiles3_path[100];
 	char 	nFile[1000];
+	char 	nDriftFile[1000];
 	char 	corr_File[1000];
 	//char 	date_min[50]; /* unused */
 	//char 	date_max[50]; /* unused */
@@ -67,7 +70,7 @@ int main (int   argc, char *argv[])
 	int	resultUnlink;
 	int	resultCorr;
 	
-	strcpy(agiles3_path,AGILES3_STORAGE);
+	sprintf(agiles3_path,"%s/%s",BASE_PATH,AGILES3_STORAGE);
 
 	//prende l'eventuale valore della variabile HEADAS
 	headas = getenv("HEADAS");
@@ -81,7 +84,7 @@ int main (int   argc, char *argv[])
 	    
 	    printf("\nStep 1: Prendi elenco file da correggere dal db-mysql.\n");
 	    /* Lancio select su mysqldb */
-	    sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE,MYSQL_DB,LISTA_FILE_CORR);
+	    sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND Filename='PKP048495_1_3901_000_1473040447.flg.gz' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE,MYSQL_DB,LISTA_FILE_CORR);
 	    cout << "	Command: " << cmd << endl;
 	    result = exec(cmd);
 	    
@@ -104,19 +107,25 @@ int main (int   argc, char *argv[])
 		    size_t pos = s.find(","); 
 		    string s1 = s.substr(pos+1);
 		    string s_id = s.substr(0,pos);
-		   
+		    
+		    pos = s1.find("PKP");
+		    string s_id_drift = s1.substr(pos+3,6);
+		    printf("	s_id_drift='%s'",s_id_drift.c_str());
+		    
 		    sprintf(nFile,"%s%s",agiles3_path,s1.c_str());
 		    cont++; 
 		    if(exists_file(nFile))
 		    {
 			printf("	Elaboro il file N°%d con id=%s: '%s'",cont,s_id.c_str(),nFile);
-			printf("\n	Step 1.2: Individua file drift.\n");
-			printf("\n	Step 1.3: Applica correttore.\n");
 			
+			printf("\n	Step 1.2: Individua file drift.\n");
+			sprintf(nDriftFile,"%s/%s/LV1corr/%s/VC1/DRIFT-PKP%s_1_33XY_000.lv1.cor",BASE_PATH,AGILES2_STORAGE,s_id_drift.c_str(),s_id_drift.c_str());
+			
+			printf("\n	Step 1.3: Applica correttore.\n");
 			/* per collaudo unlink */
 			sprintf(corr_File,"%s_temp",nFile);
 			sprintf (cmd, "cp %s %s",nFile,corr_File);
-			printf("		cor_drift %s <DRIFT_FILE> %s\n",nFile,corr_File);
+			printf("		cor_drift %s %s %s\n",nFile,nDriftFile,corr_File);
 			resultCorr = system(cmd);
 			
 			if( resultCorr == 0)
