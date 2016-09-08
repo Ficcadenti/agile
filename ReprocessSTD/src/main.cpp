@@ -37,19 +37,15 @@ string exec(const char* cmd);
 
 int main (int   argc, char *argv[])
 {
-	char* headas = getenv("HEADAS");
-	string result;
-	string s;
-	int cont;
-	
-	
-	cont=0;
-	char agiles3_path[100];
-	char nFile[1000];
-	char date1[50];
-
-	char cmd[3000];
-	char update_cmd[3000];
+	char* 	headas = getenv("HEADAS");
+	string 	result;
+	string 	s;
+	char 	agiles3_path[100];
+	char 	nFile[1000];
+	char 	date1[50];
+	char 	cmd[3000];
+	char 	update_cmd[3000];
+	int	cont=0;
 	
 	strcpy(agiles3_path,AGILES3_STORAGE);
 
@@ -59,7 +55,6 @@ int main (int   argc, char *argv[])
 	{
 	    
 	    printf("****************** Start Reprocess STD!!! *******************\n\n\n");
-	    exit(1);
 	    
 	    printf("Step 0: Verifica environment Heasoft.\n");
 	    cout << "---> HEADAS = " << headas << endl;
@@ -68,21 +63,19 @@ int main (int   argc, char *argv[])
 	    /* Lancio select su mysqldb */
 	    {
 	      sprintf(cmd,"mysql -u root -p'root' -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = 'FLG' AND datemin >= '2015-6-30' AND Filename='PKP048495_1_3901_000_1473040447.flg.gz' ORDER BY id\" agile3 -N | sed 's/\t/,/g' > %s",LISTA_FILE_CORR);
-	      cout << "---> " << cmd << endl;
+	      cout << "	Command: " << cmd << endl;
 	      result = exec(cmd);
 	    }
 	    
 	    /* Scorro l'elenco dei record nel file generato 'fits_destinazione.txt'  */
 	    //printf("---> file da elaborare = [%s]\n",nFile);
 	    
-	    ifstream f;
+	    ifstream f(LISTA_FILE_CORR); //nome del file da aprire, si può mettere anche il percorso (es C:\\file.txt)
 	    ofstream out(UPDATE_DB_FILE);
-    
-	    f.open(LISTA_FILE_CORR); //nome del file da aprire, si può mettere anche il percorso (es C:\\file.txt)
 	    
 	    if(!f) 
 	    {
-		cout << "Il " << LISTA_FILE_CORR << "file non esiste!";
+		printf("ERROR: Il file '%s' non esiste!\n",LISTA_FILE_CORR);
 		return -1;
 	    }
 	    else
@@ -90,20 +83,18 @@ int main (int   argc, char *argv[])
 
 		while(getline(f, s)) //fino a quando c'è qualcosa da leggere ..
 		{
+		    printf("--------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 		    size_t pos = s.find(","); 
 		    string s1 = s.substr(pos+1);
 		    string s_id = s.substr(0,pos);
 		   
-
 		    sprintf(nFile,"%s%s",agiles3_path,s1.c_str());
-		    
-		    
-		    cout<< cont++ << "---> Elaboro il file("<< s_id << "): " << s <<endl;
-		    printf("\nStep 1.2: Individua file drift.\n");
-		    printf("\nStep 1.3: Applica correttore.\n");
-		    printf("\nStep 1.4: Aggiorna link simbolici.\n");
+		     
+		    printf("	Elaboro il file N°%d con id=%s: %s",++cont,s_id.c_str(),nFile);
+		    printf("\n	Step 1.2: Individua file drift.\n");
+		    printf("\n	Step 1.3: Applica correttore.\n");
+		    printf("\n	Step 1.4: Aggiorna link simbolici.\n");
 		   
-		    
 		    if(exists_file(nFile))
 		    {
 			/* se tutto ok dopo il correttore */
@@ -115,15 +106,14 @@ int main (int   argc, char *argv[])
 			{
 			    printf("\nStep 1.5: unlink file '%s'.\n",nFile);
 			}*/
-			
-			
-			printf("\nStep 1.6: Prendi key dal file fits.\n");
+			printf("\n	Step 1.5: unlink file '%s'.\n",nFile);
+			printf("\n	Step 1.6: Prendi key dal file fits.\n");
 			sprintf(cmd,"fkeyprint %s+1 %s | grep = | cut -f2 -d \"'\" | cut -f1 -d \"/\"",nFile,DATE1);
-			cout << "---> " << cmd << endl;
+			printf("		Command: %s\n",cmd);
 			result = exec(cmd);
 			copy(result.begin(), result.end()-1, date1);
 		    
-			cout << "---> DATE1 = [" << date1 << "]" << endl;
+			printf("		DATE1 = [%s]\n",date1);
 			
 			sprintf(update_cmd,"update PIPE_ArchivedFile set datemin = '%s' where id=%s;\n",date1,s_id.c_str());
 			
@@ -131,8 +121,9 @@ int main (int   argc, char *argv[])
 		    }
 		    else
 		    {
-			printf("---> Il file '%s' non esiste !!!!!!!\n",nFile);
+			printf("	WARNING: Il file '%s' non esiste !!!!!!!\n",nFile);
 		    }
+		    printf("--------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 		}
 		
 		out << "commit;";
@@ -148,7 +139,7 @@ int main (int   argc, char *argv[])
 	}
 	else
 	{
-	    cout << "Ambiente Heasoft non settato!!!!\n";
+	    printf("ERROR: Ambiente Heasoft non settato!!!!\n");
 	}
 	
 	return 0;
