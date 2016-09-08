@@ -32,15 +32,18 @@
 #define MYSQL_HOST		"localhost"
 #define QUERY_DATE		"2015-6-30"
 #define QUERY_TYPE		"FLG"
-#define BASE_PATH		"/home/raffo/"
-#define AGILES3_STORAGE 	"agile/storage1/agile/agile3/"
+#define ORIGIN_BASE_PATH	"/home/raffo/"
+#define DEST_BASE_PATH		"/home/raffo/"
 #define AGILES2_STORAGE 	"agile/storage1/agile/agile2/"
+#define AGILES3_STORAGE 	"agile/storage1/agile/agile3/"
 #define LISTA_FILE_CORR 	"file_corr.csv"
 #define UPDATE_DB_FILE  	"update_db.sql"
 #define DATE 			"DATE"
 #define DATE_END 		"DATE-END"
 #define TSTART 			"TSTART"
 #define TSTOP	 		"TSTOP"
+
+// #define COLLAUDO		1
 
 using namespace std;
 
@@ -54,8 +57,9 @@ int main (int   argc, char *argv[])
 	char* 	headas=NULL;
 	string 	result;
 	string 	s;
-	char 	agiles3_path[100];
-	char 	nFile[1000];
+	char 	nSorgentePath[100];
+	char 	nDestinazionePath[100];
+	char 	nSorgenteFile[1000];
 	char 	nDriftFile[1000];
 	char 	corr_File[1000];
 	//char 	date_min[50]; /* unused */
@@ -66,11 +70,12 @@ int main (int   argc, char *argv[])
 	char 	update_cmd[3000];
 	int	cont=0;
 	int	contUpdate=0;
-	int	resultRename;
-	int	resultUnlink;
-	int	resultCorr;
+	int	resultRename=0;
+	int	resultUnlink=0;
+	int	resultCorr=0;
 	
-	sprintf(agiles3_path,"%s/%s",BASE_PATH,AGILES3_STORAGE);
+	sprintf(nSorgentePath,"%s/%s",ORIGIN_BASE_PATH,AGILES3_STORAGE);
+	sprintf(nDestinazionePath,"%s/%s",DEST_BASE_PATH,AGILES3_STORAGE);
 
 	//prende l'eventuale valore della variabile HEADAS
 	headas = getenv("HEADAS");
@@ -111,54 +116,55 @@ int main (int   argc, char *argv[])
 		    pos = s1.find("PKP");
 		    string s_id_drift = s1.substr(pos+3,6);
 		    printf("	s_id_drift='%s'",s_id_drift.c_str());
+		    sprintf(nSorgenteFile,"%s%s",nSorgentePath,s1.c_str());
+
 		    
-		    sprintf(nFile,"%s%s",agiles3_path,s1.c_str());
+		    sprintf(corr_File,"%s%s_temp",nDestinazionePath,s1.c_str());
 		    cont++; 
-		    if(exists_file(nFile))
+		    if(exists_file(nSorgenteFile))
 		    {
-			printf("	Elaboro il file N°%d con id=%s: '%s'",cont,s_id.c_str(),nFile);
+			printf("	Elaboro il file N°%d con id=%s: '%s'",cont,s_id.c_str(),nSorgenteFile);
 			
 			printf("\n	Step 1.2: Individua file drift.\n");
-			sprintf(nDriftFile,"%s/%s/LV1corr/%s/VC1/DRIFT-PKP%s_1_33XY_000.lv1.cor",BASE_PATH,AGILES2_STORAGE,s_id_drift.c_str(),s_id_drift.c_str());
+			sprintf(nDriftFile,"%s/%s/LV1corr/%s/VC1/DRIFT-PKP%s_1_33XY_000.lv1.cor",ORIGIN_BASE_PATH,AGILES2_STORAGE,s_id_drift.c_str(),s_id_drift.c_str());
 			
-			printf("\n	Step 1.3: Applica correttore.\n");
-			/* per collaudo unlink */
-			sprintf(corr_File,"%s_temp",nFile);
-			sprintf (cmd, "cp %s %s",nFile,corr_File);
-			printf("		cor_drift %s %s %s\n",nFile,nDriftFile,corr_File);
+			printf("\n	Step 1.3: Applica correttore.\n");	
+			sprintf (cmd, "cp %s %s",nSorgenteFile,corr_File);
+		
+			
+			printf("		cor_drift %s %s %s\n",nSorgenteFile,nDriftFile,corr_File);
 			resultCorr = system(cmd);
 			
 			if( resultCorr == 0)
 			{  
 			    if(exists_file(corr_File)) /* se tutto ok dopo il correttore */
 			    {
+
 				  printf("\n	Step 1.4: elimina link simbolici.\n");
-				  printf("		unlink file '%s'.\n",nFile);
-				  
-				  resultUnlink = unlink(nFile);
-				  
+				  printf("		unlink file '%s'.\n",nSorgenteFile);
+				  resultUnlink = unlink(nSorgenteFile);
+			  
 				  if( resultUnlink == 0) /* se tutto ok dopo unlink */
 				  {
 				      printf("\n	Step 1.5: rename corr file.\n");
-				      printf("		rename '%s' to '%s'.\n",corr_File,nFile);
+				      printf("		rename '%s' to '%s'.\n",corr_File,nSorgenteFile);
 				      
-				      resultRename= rename( corr_File , nFile );
+				      resultRename = rename( corr_File , nSorgenteFile );
 				      
 				      if ( resultRename == 0 ) /* se tutto ok dopo rename */
 				      {
-					  printf(" File successfully renamed" );
 					  printf("\n	Step 1.6: Prendi key dal file fits.\n");
 				      
 					  /*
 					  // get datemin from key DATE
-					  sprintf(cmd,"fkeyprint %s+0 %s exact=yes | grep = | cut -f2 -d \"'\" | cut -f1 -d \"/\"",nFile,DATE);
+					  sprintf(cmd,"fkeyprint %s+0 %s exact=yes | grep = | cut -f2 -d \"'\" | cut -f1 -d \"/\"",nSorgenteFile,DATE);
 					  printf("		Command: %s\n",cmd);
 					  result = exec(cmd);
 					  copy(result.begin(), result.end()-1, date_min);
 					  printf("		datemin = [%s]\n",date_min);
 					  
 					  // get datemax from key DATE-END 
-					  sprintf(cmd,"fkeyprint %s+0 %s exact=yes | grep = | cut -f2 -d \"'\" | cut -f1 -d \"/\"",nFile,DATE_END);
+					  sprintf(cmd,"fkeyprint %s+0 %s exact=yes | grep = | cut -f2 -d \"'\" | cut -f1 -d \"/\"",nSorgenteFile,DATE_END);
 					  printf("		Command: %s\n",cmd);
 					  result = exec(cmd);
 					  copy(result.begin(), result.end()-1, date_max);
@@ -166,7 +172,7 @@ int main (int   argc, char *argv[])
 					  */
 					  
 					  // get timemin from key TSTART
-					  sprintf(cmd,"fkeyprint %s+0 %s exact=yes | grep = | cut -f2 -d \"=\" | cut -f1 -d \"/\"",nFile,TSTART);
+					  sprintf(cmd,"fkeyprint %s+0 %s exact=yes | grep = | cut -f2 -d \"=\" | cut -f1 -d \"/\"",nSorgenteFile,TSTART);
 					  printf("		Command: %s\n",cmd);
 					  result = exec(cmd);
 					  result=trim(result);
@@ -174,7 +180,7 @@ int main (int   argc, char *argv[])
 					  printf("		timemin = [%s]\n",time_min);
 					  
 					  // get timemax from key TSTOP 
-					  sprintf(cmd,"fkeyprint %s+0 %s exact=yes | grep = | cut -f2 -d \"=\" | cut -f1 -d \"/\"",nFile,TSTOP);
+					  sprintf(cmd,"fkeyprint %s+0 %s exact=yes | grep = | cut -f2 -d \"=\" | cut -f1 -d \"/\"",nSorgenteFile,TSTOP);
 					  printf("		Command: %s\n",cmd);
 					  result = exec(cmd);
 					  result=trim(result);
@@ -210,7 +216,7 @@ int main (int   argc, char *argv[])
 		    }
 		    else
 		    {
-			printf("	WARNING: Il file N°%d con id=%s: '%s' non esiste !!!!!!!\n",cont,s_id.c_str(),nFile);
+			printf("	WARNING: Il file N°%d con id=%s: '%s' non esiste !!!!!!!\n",cont,s_id.c_str(),nSorgenteFile);
 		    }
 		    printf("--------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 		}
@@ -238,7 +244,7 @@ int main (int   argc, char *argv[])
 	    }
 	    
 	    printf("\n\n\n");
-	    printf("****************** Finish Reprocess STD!!! *******************");
+	    printf("****************** Finish Reprocess STD!!! *******************\n");
 	}
 	else
 	{
