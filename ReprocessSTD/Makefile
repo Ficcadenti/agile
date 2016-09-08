@@ -26,10 +26,9 @@ CFLAGS = -g -Wall -std=c++11 -L/usr/local/lib -I$(SUBDIR)/src -I$(SUBDIR)/inc
 LDFLAGS = 
 
 
-SORGENTI 	=      $(SUBDIR)/src/main.cpp\
-			$(SUBDIR)/src/reprocess_std.cpp
+SORGENTI 	=      $(SUBDIR)/src/main.cpp
 
-HEADERS =       $(SUBDIR)/inc/reprocess_sdd.h			
+HEADERS =       
                 
 
 $(TARGET): $(SORGENTI)

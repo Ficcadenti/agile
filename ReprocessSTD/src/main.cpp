@@ -9,13 +9,10 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// test_smooth
+// reprocess_std
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-
-//My Class
-#include "reprocess_sdd.h"
 
 #include <iostream>
 #include <stdlib.h>
@@ -24,7 +21,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
-#include <fstream> //header necessario per ifstream!
+#include <fstream> 
+#include <unistd.h>
 
 
 #define AGILES3_STORAGE "/home/raffo/agile/storage1/agile/agile3/"
@@ -32,35 +30,15 @@
 #define UPDATE_DB_FILE  "update_db.sql"
 #define DATE1 		"DATE"
 
+using namespace std;
 
-std::string exec(const char* cmd) {
-    char buffer[128];
-    std::string result = "";
-    FILE* pipe = popen(cmd, "r");
-    if (!pipe) throw std::runtime_error("popen() failed!");
-    try 
-    {
-        while (!feof(pipe)) 
-	{
-            if (fgets(buffer, 128, pipe) != NULL)
-                result += buffer;
-        }
-    } 
-    catch (...) 
-    {
-        pclose(pipe);
-        throw;
-    }
-    pclose(pipe);
-    return result;
-}
+bool exists_file (const string& name);
+string exec(const char* cmd);
 
 int main (int   argc, char *argv[])
 {
-
-	reprocess_sdd  _processSTD;
 	char* headas = getenv("HEADAS");
-	std::string result;
+	string result;
 	string s;
 	int cont;
 	
@@ -75,16 +53,13 @@ int main (int   argc, char *argv[])
 	
 	strcpy(agiles3_path,AGILES3_STORAGE);
 
-	
-	cout << "-----------------> nFile = " << nFile << endl;
-	
 	//mostra il valore della variabile HEADAS
 	
 	if(headas != NULL) 
 	{
 	    
 	    printf("****************** Start Reprocess STD!!! *******************\n\n\n");
-	    
+	    exit(1);
 	    
 	    printf("Step 0: Verifica environment Heasoft.\n");
 	    cout << "---> HEADAS = " << headas << endl;
@@ -100,8 +75,8 @@ int main (int   argc, char *argv[])
 	    /* Scorro l'elenco dei record nel file generato 'fits_destinazione.txt'  */
 	    //printf("---> file da elaborare = [%s]\n",nFile);
 	    
-	    std::ifstream f;
-	    std::ofstream out(UPDATE_DB_FILE);
+	    ifstream f;
+	    ofstream out(UPDATE_DB_FILE);
     
 	    f.open(LISTA_FILE_CORR); //nome del file da aprire, si può mettere anche il percorso (es C:\\file.txt)
 	    
@@ -113,11 +88,11 @@ int main (int   argc, char *argv[])
 	    else
 	    {
 
-		while(std::getline(f, s)) //fino a quando c'è qualcosa da leggere ..
+		while(getline(f, s)) //fino a quando c'è qualcosa da leggere ..
 		{
-		    std::size_t pos = s.find(","); 
-		    std::string s1 = s.substr(pos+1);
-		    std::string s_id = s.substr(0,pos);
+		    size_t pos = s.find(","); 
+		    string s1 = s.substr(pos+1);
+		    string s_id = s.substr(0,pos);
 		   
 
 		    sprintf(nFile,"%s%s",agiles3_path,s1.c_str());
@@ -127,18 +102,37 @@ int main (int   argc, char *argv[])
 		    printf("\nStep 1.2: Individua file drift.\n");
 		    printf("\nStep 1.3: Applica correttore.\n");
 		    printf("\nStep 1.4: Aggiorna link simbolici.\n");
-		    printf("\nStep 1.5: Prendi key dal file fits.\n");
+		   
 		    
-		    sprintf(cmd,"fkeyprint %s+1 %s | grep = | cut -f2 -d \"'\" | cut -f1 -d \"/\"",nFile,DATE1);
-		    cout << "---> " << cmd << endl;
-		    result = exec(cmd);
-		    std::copy(result.begin(), result.end()-1, date1);
-		
-		    cout << "---> DATE1 = [" << date1 << "]" << endl;
+		    if(exists_file(nFile))
+		    {
+			/* se tutto ok dopo il correttore */
+			/*if( unlink(nFile) )
+			{
+			    printf("Warning: Unable to remove '%s' link.\n", nFile);
+			}
+			else
+			{
+			    printf("\nStep 1.5: unlink file '%s'.\n",nFile);
+			}*/
+			
+			
+			printf("\nStep 1.6: Prendi key dal file fits.\n");
+			sprintf(cmd,"fkeyprint %s+1 %s | grep = | cut -f2 -d \"'\" | cut -f1 -d \"/\"",nFile,DATE1);
+			cout << "---> " << cmd << endl;
+			result = exec(cmd);
+			copy(result.begin(), result.end()-1, date1);
 		    
-		    sprintf(update_cmd,"update PIPE_ArchivedFile set datemin = '%s' where id=%s;\n",date1,s_id.c_str());
-		    
-		    out << update_cmd;
+			cout << "---> DATE1 = [" << date1 << "]" << endl;
+			
+			sprintf(update_cmd,"update PIPE_ArchivedFile set datemin = '%s' where id=%s;\n",date1,s_id.c_str());
+			
+			out << update_cmd;
+		    }
+		    else
+		    {
+			printf("---> Il file '%s' non esiste !!!!!!!\n",nFile);
+		    }
 		}
 		
 		out << "commit;";
@@ -158,4 +152,32 @@ int main (int   argc, char *argv[])
 	}
 	
 	return 0;
+}
+
+
+bool exists_file (const string& name) {
+    ifstream f(name.c_str());
+    return f.good();
+}
+
+string exec(const char* cmd) {
+    char buffer[128];
+    string result = "";
+    FILE* pipe = popen(cmd, "r");
+    if (!pipe) throw runtime_error("popen() failed!");
+    try 
+    {
+        while (!feof(pipe)) 
+	{
+            if (fgets(buffer, 128, pipe) != NULL)
+                result += buffer;
+        }
+    } 
+    catch (...) 
+    {
+        pclose(pipe);
+        throw;
+    }
+    pclose(pipe);
+    return result;
 }
