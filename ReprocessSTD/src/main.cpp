@@ -217,7 +217,10 @@ int main (int   argc, char *argv[])
 	    
 	    if(contUpdate>0)
 	    {
-		printf("Step 2: aggiorna db-mysql.\n");
+		printf("Step 2: aggiorna mysqldb.\n");
+		sprintf(cmd,"mysql -u %s -p'%s' -h %s %s < %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_DB,UPDATE_DB_FILE);
+		printf("	Command: %s\n",cmd);
+		result = exec(cmd);
 		/* mysql -u root -p'root' agile3 < update.sql */
 	    }
 	    else
