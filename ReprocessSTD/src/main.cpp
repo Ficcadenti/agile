@@ -36,6 +36,7 @@
 #define ORIGIN_BASE_PATH	"/tmp/"
 #define DEST_BASE_PATH		"/tmp/"
 
+#define ORIGIN_DRIFT_BASE_PATH	"/storage1/"
 #define CLONE_ORIGIN_BASE_PATH	"/storage1/"
 #define CLONE_BASE_PATH		"/tmp/"
 
@@ -48,7 +49,7 @@
 #define TSTART 			"TSTART"
 #define TSTOP	 		"TSTOP"
 
-// #define COLLAUDO		1
+#define COLLAUDO		1
 
 using namespace std;
 
@@ -77,7 +78,7 @@ void clonaSorgenti()
 	cout << "	Command: " << cmd << endl;
 	result = exec(cmd);
 	
-	ifstream f(LISTA_FILE_CORR); //nome del file da aprire, si può mettere anche il percorso (es C:\\file.txt)
+	ifstream f(LISTA_FILE_CORR);
 	    
 	if(!f) 
 	{
@@ -206,9 +207,8 @@ int main (int   argc, char *argv[])
 		    /* Nome file drift */
 		    pos = s1.find("PKP");
 		    string s_id_drift = s1.substr(pos+3,6);
-		    printf("\n	Step 1.1: Individua file drift con id '%s'.\n",s_id_drift.c_str());
-		    sprintf(nDriftFile,"%s/%s/LV1corr/%s/VC1/DRIFT-PKP%s_1_33XY_000.lv1.cor",ORIGIN_BASE_PATH,AGILES2_STORAGE,s_id_drift.c_str(),s_id_drift.c_str());
-		
+		    printf("\n	Step 1.1: Individua file DRIFT con id '%s','%s/%s/LV1corr/%s/VC1/DRIFT-PKP%s_1_33XY_000.lv1.cor'.\n",s_id_drift.c_str(),ORIGIN_DRIFT_BASE_PATH,AGILES2_STORAGE,s_id_drift.c_str(),s_id_drift.c_str());
+		    sprintf(nDriftFile,"%s/%s/LV1corr/%s/VC1/DRIFT-PKP%s_1_33XY_000.lv1.cor",ORIGIN_DRIFT_BASE_PATH,AGILES2_STORAGE,s_id_drift.c_str(),s_id_drift.c_str());
 		    
 		    if(exists_file(nDriftFile))
 		    {
