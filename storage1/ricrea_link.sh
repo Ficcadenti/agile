@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "Elimino  /storage1/agile"
-rm -rf /storage1/agile
+#echo "Elimino  /storage1/agile"
+#rm -rf /storage1/agile
 
 echo "Creo directory e file agile2"
 install -D  agile/agile2/qlstd/1609050005_1609050119-145098/FLG__FM/PKP048495_1_3901_000_1473040447.flg.gz /storage1/agile/agile2/qlstd/1609050005_1609050119-145098/FLG__FM/PKP048495_1_3901_000_1473040447.flg.gz
