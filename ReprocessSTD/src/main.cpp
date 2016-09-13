@@ -45,6 +45,7 @@
 #define AGILES3_STORAGE 	"agile/agile3/"
 #define LISTA_FILE_CORR 	"file_corr.csv"
 #define UPDATE_DB_FILE  	"update_db.sql"
+#define SELECT_DB_FILE  	"select_db.sql"
 #define DATE 			"DATE"
 #define DATE_END 		"DATE-END"
 #define TSTART 			"TSTART"
@@ -74,6 +75,7 @@ int main (int   argc, char *argv[])
 	char 	time_max[50];
 	char 	cmd[3000];
 	char 	update_cmd[3000];
+	char 	select_cmd[3000];
 	int	cont=0;
 	int	contUpdate=0;
 	int	resultRename=0;
@@ -81,10 +83,18 @@ int main (int   argc, char *argv[])
 	int	resultCorr=0;
 	bool	enableClone=false;
 	
-	memset( time_min, '\0', sizeof(char)*50 );
-	memset( time_max, '\0', sizeof(char)*50 );
-	memset( nSorgenteFile, '\0', sizeof(char)*1000 );
-	
+	memset( nSorgentePath, '\0', sizeof(nSorgentePath) );
+	memset( nDestinazionePath, '\0', sizeof(nDestinazionePath) );
+	memset( nSorgenteFile, '\0', sizeof(nSorgenteFile) );
+	memset( nCorFile, '\0', sizeof(nCorFile) );
+	memset( nCorFileTemp, '\0', sizeof(nCorFileTemp) );
+	memset( nDriftFile, '\0', sizeof(nDriftFile) );
+	memset( time_min, '\0', sizeof(time_min) );
+	memset( time_max, '\0', sizeof(time_max) );
+	memset( cmd, '\0', sizeof(cmd) );
+	memset( update_cmd, '\0', sizeof(update_cmd) );
+	memset( select_cmd, '\0', sizeof(select_cmd) );
+
 	/* controllo parametri da linea di comando */
 	if(argc>1)
 	{
@@ -147,6 +157,7 @@ int main (int   argc, char *argv[])
 	      
 	      ifstream f(LISTA_FILE_CORR); //nome del file da aprire, si può mettere anche il percorso (es C:\\file.txt)
 	      ofstream out(UPDATE_DB_FILE);
+	      ofstream out_select(SELECT_DB_FILE);
 	      
 	      
 	      if(!f) 
@@ -248,10 +259,11 @@ int main (int   argc, char *argv[])
 					      printf("		timemax = [%s]\n",time_max);
 					      
 					      sprintf(update_cmd,"UPDATE PIPE_ArchivedFile b SET b.datemin = DATE_ADD(b.datemin, INTERVAL (SELECT delta FROM (SELECT (%s-timemin) as delta FROM PIPE_ArchivedFile WHERE id=%s) AS sub_delta) SECOND),b.datemax = DATE_ADD(b.datemax, INTERVAL (SELECT delta_b FROM (SELECT (%s-timemax) as delta_b FROM PIPE_ArchivedFile WHERE id=%s) AS sub_delta_b ) SECOND),timemin=%s,timemax=%s WHERE b.id=%s;\n",time_min,s_id.c_str(),time_max,s_id.c_str(),time_min,time_max,s_id.c_str());
-					      
-					      //sprintf(update_cmd,"update PIPE_ArchivedFile set datemin = '%s',datemax = '%s',timemin = %s,timemax = %s where id=%s;\n",date_min,date_max,time_min,time_max,s_id.c_str());
+					      sprintf(select_cmd,"SELECT id, Filename, datemin, datemax, timemin, timemax, (%s-timemin) as delta_timemin, (%s-timemax) as delta_timemax,(timemin+(%s-timemin)) as new_timemin,(timemax+(%s-timemax)) as new_timemax,DATE_ADD(datemin, INTERVAL (%s-timemin) SECOND)  as new_datemin, DATE_ADD(datemax, INTERVAL (%s-timemax) SECOND)  as new_datemax FROM PIPE_ArchivedFile where id=%s;\n",time_min,time_max,time_min,time_max,time_min,time_max,s_id.c_str());
 					      
 					      out << update_cmd;
+					      out_select << select_cmd;
+					      
 					      contUpdate++;
 					  }
 					  else
@@ -297,12 +309,14 @@ int main (int   argc, char *argv[])
 		  
 		  f.close(); //chiude il file di input
 		  out.close(); // chiude il file di output
+		  out_select.close();
 	      }
 	      
 	      if(contUpdate>0)
 	      {
 		  printf("Step 2: aggiorna mysqldb.\n");
-		  sprintf(cmd,"mysql -u %s -p'%s' -h %s %s < %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_DB,UPDATE_DB_FILE);
+		  //sprintf(cmd,"mysql -u %s -p'%s' -h %s %s < %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_DB,UPDATE_DB_FILE);
+		  sprintf(cmd,"mysql -u %s -p'%s' -h %s %s < %s > update_cmd.csv",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_DB,SELECT_DB_FILE); 
 		  printf("	Command: %s\n",cmd);
 		  result = exec(cmd);
 		  /* mysql -u root -p'root' agile3 < update.sql */
