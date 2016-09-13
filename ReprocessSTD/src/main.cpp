@@ -70,9 +70,6 @@ int main (int   argc, char *argv[])
 	char 	nCorFile[1000];
 	char 	nCorFileTemp[1000];
 	char 	nDriftFile[1000];
-	
-	//char 	date_min[50]; /* unused */
-	//char 	date_max[50]; /* unused */
 	char 	time_min[50];
 	char 	time_max[50];
 	char 	cmd[3000];
@@ -86,6 +83,8 @@ int main (int   argc, char *argv[])
 	
 	memset( time_min, '\0', sizeof(char)*50 );
 	memset( time_max, '\0', sizeof(char)*50 );
+	memset( nSorgenteFile, '\0', sizeof(char)*1000 );
+	
 	/* controllo parametri da linea di comando */
 	if(argc>1)
 	{
