@@ -84,6 +84,8 @@ int main (int   argc, char *argv[])
 	int	resultCorr=0;
 	bool	enableClone=false;
 	
+	memset( time_min, '\0', sizeof(char)*50 );
+	memset( time_max, '\0', sizeof(char)*50 );
 	/* controllo parametri da linea di comando */
 	if(argc>1)
 	{
@@ -433,3 +435,4 @@ void clonaSorgenti()
 	    }
 	}	  
 }
+

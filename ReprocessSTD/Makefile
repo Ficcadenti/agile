@@ -21,7 +21,7 @@ PREFIX=../agile-test
 BINDIR=${PREFIX}/${TARGET}
 SUBDIR=./
 
-CFLAGS = -g -Wall -std=c++11 -L/usr/local/lib -I$(SUBDIR)/src -I$(SUBDIR)/inc 
+CFLAGS = -g -Wall -L/usr/local/lib -I$(SUBDIR)/src -I$(SUBDIR)/inc 
 
 LDFLAGS = 
 
