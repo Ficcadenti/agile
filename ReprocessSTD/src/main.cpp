@@ -32,7 +32,7 @@
 #define MYSQL_DB		"agile3_test"
 #define MYSQL_HOST		"mysql"
 #define QUERY_DATE_DA		"2015-7-1"
-#define QUERY_DATE_A		"2016-7-27"
+#define QUERY_DATE_A		"2016-12-27"
 #define QUERY_TYPE		"FLG"
 
 #define ORIGIN_BASE_PATH	"/tmp/"
@@ -53,7 +53,9 @@
 #define TSTART 			"TSTART"
 #define TSTOP	 		"TSTOP"
 
-#define COLLAUDO		1
+#define EXEC_DRIFT		"/home/adc/ADC/correction/bin/cor_drift"
+
+//#define COLLAUDO		1
 
 using namespace std;
 
@@ -136,6 +138,7 @@ int main (int   argc, char *argv[])
 			printf("Path destinazione: '%s'\n",CLONE_BASE_PATH);
 			
 			cout << "----- CORRETTORE --------------------------------------------------" << endl;
+			printf("Eseguibile:        '%s'\n",EXEC_DRIFT);
 			printf("Sorgente:          '%s'\n",ORIGIN_BASE_PATH);
 			printf("Destinazione:      '%s'\n",DEST_BASE_PATH);
 			
@@ -172,9 +175,6 @@ int main (int   argc, char *argv[])
 	
 	if(headas != NULL) /* Se l'ambiente Heasoft è settato procedi con la correzione */
 	{
-	    
-
-#ifdef COLLAUDO	  
 	    if(enableClone==true)
 	    {
 	      printf("****************** Start Clone STD!!! *******************\n\n\n");
@@ -182,7 +182,6 @@ int main (int   argc, char *argv[])
 	      printf("****************** Finish Clone STD!!! *******************\n\n\n");
 	    }
 	    else
-#endif
 	    {  
 	      printf("****************** Start Reprocess STD!!! *******************\n\n\n");
 	      printf("Step 0: Verifica environment Heasoft.\n");
@@ -239,12 +238,16 @@ int main (int   argc, char *argv[])
 		      {
 			if(exists_file(nSorgenteFile))
 			{
-			    printf("\n	Step 1.2: Applica correttore.\n");	
-			    sprintf (cmd, "cp %s %s",nSorgenteFile,nCorFileTemp);
+			    printf("\n	Step 1.2: Applica correttore.\n");
 			    
-			    printf("		Command: %s\n",cmd);
+			    #ifdef COLLAUDO
+				sprintf (cmd, "cp %s %s",nSorgenteFile,nCorFileTemp); 
+				printf("		Command: %s\n",cmd);
+			    #else
+				sprintf (cmd, "%s %s %s %s",EXEC_DRIFT,nSorgenteFile,nDriftFile,nCorFileTemp);
+				printf("		Command: %s\n",cmd);
+			    #endif	
 			    
-			    printf("		Command: cor_drift %s %s %s\n",nSorgenteFile,nDriftFile,nCorFileTemp);
 			    resultCorr = system(cmd);
 			    
 			    if( resultCorr == 0)
