@@ -46,6 +46,7 @@
 #define LISTA_FILE_CORR 	"file_corr.csv"
 #define UPDATE_DB_FILE  	"update_db.sql"
 #define SELECT_DB_FILE  	"select_db.sql"
+#define UPDATE_REPORT_FILE	"new_time.csv"
 #define DATE 			"DATE"
 #define DATE_END 		"DATE-END"
 #define TSTART 			"TSTART"
@@ -76,12 +77,14 @@ int main (int   argc, char *argv[])
 	char 	cmd[3000];
 	char 	update_cmd[3000];
 	char 	select_cmd[3000];
-	int	cont=0;
-	int	contUpdate=0;
-	int	resultRename=0;
-	int	resultUnlink=0;
-	int	resultCorr=0;
-	bool	enableClone=false;
+	
+	int	cont		= 0;
+	int	contUpdate	= 0;
+	int	resultRename	= 0;
+	int	resultUnlink	= 0;
+	int	resultCorr	= 0;
+	bool	enableClone	= false;
+	bool	updateDB	= false;
 	
 	memset( nSorgentePath, '\0', sizeof(nSorgentePath) );
 	memset( nDestinazionePath, '\0', sizeof(nDestinazionePath) );
@@ -89,8 +92,6 @@ int main (int   argc, char *argv[])
 	memset( nCorFile, '\0', sizeof(nCorFile) );
 	memset( nCorFileTemp, '\0', sizeof(nCorFileTemp) );
 	memset( nDriftFile, '\0', sizeof(nDriftFile) );
-	memset( time_min, '\0', sizeof(time_min) );
-	memset( time_max, '\0', sizeof(time_max) );
 	memset( cmd, '\0', sizeof(cmd) );
 	memset( update_cmd, '\0', sizeof(update_cmd) );
 	memset( select_cmd, '\0', sizeof(select_cmd) );
@@ -113,6 +114,15 @@ int main (int   argc, char *argv[])
 			printf("Destinazione: '%s'\n",CLONE_BASE_PATH);
 			
 			enableClone=true;
+		    }
+		    else if(param.compare("UPDATEDB")==0)
+		    {
+			
+			cout << "Abilito clone dei dati cone..." << endl;
+			printf("Sorgente:     '%s'\n",ORIGIN_BASE_PATH);
+			printf("Destinazione: '%s'\n",CLONE_BASE_PATH);
+			
+			updateDB=true;
 		    }
 		 }break;
 		 
@@ -224,6 +234,9 @@ int main (int   argc, char *argv[])
 					  
 					  if ( resultRename == 0 ) /* se tutto ok dopo rename */
 					  {
+					      memset( time_min, '\0', sizeof(time_min) );
+					      memset( time_max, '\0', sizeof(time_max) );
+	
 					      printf("\n	Step 1.6: Prendi key dal file fits.\n");
 					  
 					      /*
@@ -314,12 +327,17 @@ int main (int   argc, char *argv[])
 	      
 	      if(contUpdate>0)
 	      {
-		  printf("Step 2: aggiorna mysqldb.\n");
-		  //sprintf(cmd,"mysql -u %s -p'%s' -h %s %s < %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_DB,UPDATE_DB_FILE);
-		  sprintf(cmd,"mysql -u %s -p'%s' -h %s %s < %s > update_cmd.csv",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_DB,SELECT_DB_FILE); 
+		  printf("Step 2: Crea report update.\n");  
+		  sprintf(cmd,"mysql -u %s -p'%s' -h %s %s -N < %s > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_DB,SELECT_DB_FILE,UPDATE_REPORT_FILE); 
 		  printf("	Command: %s\n",cmd);
 		  result = exec(cmd);
-		  /* mysql -u root -p'root' agile3 < update.sql */
+		  
+		  if(updateDB==true)
+		  {
+			  printf("Step 3: aggiorna mysqldb.\n");
+			  sprintf(cmd,"mysql -u %s -p'%s' -h %s %s < %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_DB,UPDATE_DB_FILE);
+			  result = exec(cmd);
+		  }
 	      }
 	      else
 	      {
