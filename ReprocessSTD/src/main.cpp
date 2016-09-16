@@ -111,18 +111,48 @@ int main (int   argc, char *argv[])
 			
 			cout << "Abilito clone dei dati cone..." << endl;
 			printf("Sorgente:     '%s'\n",ORIGIN_BASE_PATH);
-			printf("Destinazione: '%s'\n",CLONE_BASE_PATH);
+			printf("Destinazione: '%s'\n",DEST_BASE_PATH);
 			
 			enableClone=true;
 		    }
-		    else if(param.compare("UPDATEDB")==0)
+		    else if(param.compare("-UPDATEDB")==0)
 		    {
 			
-			cout << "Abilito clone dei dati cone..." << endl;
-			printf("Sorgente:     '%s'\n",ORIGIN_BASE_PATH);
-			printf("Destinazione: '%s'\n",CLONE_BASE_PATH);
-			
+			cout << "Abilito scrittura date su DB..." << endl;
 			updateDB=true;
+		    }else if(param.compare("-SHOW")==0)
+		    {
+			
+			cout << "Parametri di default:" << endl;
+		
+			cout << "----- AGILE -------------------------------------------------------" << endl;
+			printf("Path base:         '%s'\n",ORIGIN_DRIFT_BASE_PATH);
+			printf("Path agile2:       '%s'\n",AGILES2_STORAGE);
+			printf("Path agile3:       '%s'\n",AGILES3_STORAGE);
+			
+			cout << "----- CLONE -------------------------------------------------------" << endl;
+			printf("Path origine:      '%s'\n",CLONE_ORIGIN_BASE_PATH);
+			printf("Path destinazione: '%s'\n",CLONE_BASE_PATH);
+			
+			cout << "----- CORRETTORE --------------------------------------------------" << endl;
+			printf("Sorgente:          '%s'\n",ORIGIN_BASE_PATH);
+			printf("Destinazione:      '%s'\n",DEST_BASE_PATH);
+			
+			cout << "----- MYSQL -------------------------------------------------------" << endl;
+			printf("MySql-user:        '%s'\n",MYSQL_USER);
+			printf("MySql-psw:         '%s'\n",MYSQL_PASSWORD);
+			printf("MySql-db:          '%s'\n",MYSQL_DB);
+			printf("MySql-host:        '%s'\n",MYSQL_HOST);
+			printf("Query-date:        '%s'\n",QUERY_DATE);
+			printf("Query-type:        '%s'\n",QUERY_TYPE);
+			
+			cout << "----- FILE --------------------------------------------------------" << endl;
+			printf("Lista file da correggere:               '%s'\n",LISTA_FILE_CORR);
+			printf("Lista update da applicate:              '%s'\n",UPDATE_DB_FILE);
+			printf("Lista select per calcolare nuovi tempi: '%s'\n",SELECT_DB_FILE);
+			printf("Report con nuovi tempi:                 '%s'\n",UPDATE_REPORT_FILE);
+
+			exit(0);
 		    }
 		 }break;
 		 
@@ -143,7 +173,6 @@ int main (int   argc, char *argv[])
 	    
 
 #ifdef COLLAUDO	  
-	    
 	    if(enableClone==true)
 	    {
 	      printf("****************** Start Clone STD!!! *******************\n\n\n");
@@ -334,8 +363,9 @@ int main (int   argc, char *argv[])
 		  
 		  if(updateDB==true)
 		  {
-			  printf("Step 3: aggiorna mysqldb.\n");
+			  printf("Step 3: Aggiorna mysqldb.\n");
 			  sprintf(cmd,"mysql -u %s -p'%s' -h %s %s < %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_DB,UPDATE_DB_FILE);
+			  printf("	Command: %s\n",cmd);
 			  result = exec(cmd);
 		  }
 	      }
