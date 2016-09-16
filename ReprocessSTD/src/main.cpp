@@ -32,7 +32,7 @@
 #define MYSQL_DB		"agile3_test"
 #define MYSQL_HOST		"mysql"
 #define QUERY_DATE_DA		"2015-7-1"
-#define QUERY_DATE_A		"2016-12-27"
+#define QUERY_DATE_A		"2016-7-27"
 #define QUERY_TYPE		"FLG"
 
 #define ORIGIN_BASE_PATH	"/tmp/"
