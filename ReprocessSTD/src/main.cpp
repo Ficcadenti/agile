@@ -55,7 +55,7 @@
 
 #define EXEC_DRIFT		"/home/adc/ADC/correction/bin/cor_drift"
 
-// //#define COLLAUDO		1
+#define COLLAUDO		1
 
 using namespace std;
 
@@ -109,7 +109,16 @@ int main (int   argc, char *argv[])
 		    string 	param=argv[1];
 		    transform(param.begin(), param.end(),param.begin(), ::toupper);
 		    
-		    if(param.compare("-CLONE")==0)
+		    if(param.compare("-HELP")==0)
+		    {
+			cout << "Elenco parametri..." << endl;
+			cout << "	-CLONE    : esegue il clone dei dati." << endl;
+			cout << "	-UDATDEDB : esegue l'aggiornamento del database." << endl;
+			cout << "	-SHOW 	  : visualizza i parametri di default." << endl;
+			cout << "	-HELP 	  : visualizza l'help." << endl;
+			exit(0);
+		    }
+		    else if(param.compare("-CLONE")==0)
 		    {
 			
 			cout << "Abilito clone dei dati cone..." << endl;
