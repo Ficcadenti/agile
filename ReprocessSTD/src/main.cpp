@@ -55,7 +55,7 @@
 
 #define EXEC_DRIFT		"/home/adc/ADC/correction/bin/cor_drift"
 
-//#define COLLAUDO		1
+// //#define COLLAUDO		1
 
 using namespace std;
 
