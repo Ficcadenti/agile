@@ -306,7 +306,7 @@ int main (int   argc, char *argv[])
 					      printf("		timemax = [%s]\n",time_max);
 					      
 					      sprintf(update_cmd,"UPDATE PIPE_ArchivedFile b SET b.datemin = DATE_ADD(b.datemin, INTERVAL (SELECT delta FROM (SELECT (%s-timemin) as delta FROM PIPE_ArchivedFile WHERE id=%s) AS sub_delta) SECOND),b.datemax = DATE_ADD(b.datemax, INTERVAL (SELECT delta_b FROM (SELECT (%s-timemax) as delta_b FROM PIPE_ArchivedFile WHERE id=%s) AS sub_delta_b ) SECOND),timemin=%s,timemax=%s WHERE b.id=%s;\n",time_min,s_id.c_str(),time_max,s_id.c_str(),time_min,time_max,s_id.c_str());
-					      sprintf(select_cmd,"SELECT id, Filename, datemin, datemax, timemin, timemax, (%s-timemin) as delta_timemin, (%s-timemax) as delta_timemax,(timemin+(%s-timemin)) as new_timemin,(timemax+(%s-timemax)) as new_timemax,DATE_ADD(datemin, INTERVAL (%s-timemin) SECOND)  as new_datemin, DATE_ADD(datemax, INTERVAL (%s-timemax) SECOND)  as new_datemax FROM PIPE_ArchivedFile where id=%s;\n",time_min,time_max,time_min,time_max,time_min,time_max,s_id.c_str());
+					      sprintf(select_cmd,"SELECT id, Filename, datemin, datemax, timemin, timemax, (%s-timemin) as delta_timemin, (%s-timemax) as delta_timemax,DATE_ADD(datemin, INTERVAL (%s-timemin) SECOND)  as new_datemin, DATE_ADD(datemax, INTERVAL (%s-timemax) SECOND)  as new_datemax,(timemin+(%s-timemin)) as new_timemin,(timemax+(%s-timemax)) as new_timemax FROM PIPE_ArchivedFile where id=%s;\n",time_min,time_max,time_min,time_max,time_min,time_max,s_id.c_str());
 					      
 					      out << update_cmd;
 					      out_select << select_cmd;
