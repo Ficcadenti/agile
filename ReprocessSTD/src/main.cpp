@@ -33,7 +33,7 @@
 #define MYSQL_DB		"agile3_test"
 #define MYSQL_HOST		"mysql"
 #define QUERY_DATE_DA		"2015-7-1"
-#define QUERY_DATE_A		"2016-9-27"
+#define QUERY_DATE_A		"2016-7-27"
 #define QUERY_TYPE		"FLG"
 
 #define ORIGIN_BASE_PATH	"/tmp/"
@@ -56,7 +56,7 @@
 
 #define EXEC_DRIFT		"/home/adc/ADC/correction/bin/cor_drift"
 
-#define COLLAUDO		1
+//#define COLLAUDO		1
 
 using namespace std;
 
@@ -203,8 +203,8 @@ int main (int   argc, char *argv[])
 	      /*1 Luglio 2015 al 27 Luglio 2016*/
 	      printf("\nStep 1: Prendi elenco file da correggere dal db-mysql.\n");
 	      /* Lancio select su mysqldb */
-	      //sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND Filename='PKP048495_1_3901_000_1473040447.flg.gz' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE,MYSQL_DB,LISTA_FILE_CORR);
-	      sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' AND id='3457416' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
+	      //sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND id='3457416' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE,MYSQL_DB,LISTA_FILE_CORR);
+	      sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
 	      cout << "	Command: " << cmd << endl;
 	      
 	      result = exec(cmd);
