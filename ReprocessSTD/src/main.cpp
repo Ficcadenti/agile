@@ -19,6 +19,7 @@
 #include <time.h>
 #include <stdexcept>
 #include <stdio.h>
+
 #include <string.h>
 #include <iostream>
 #include <fstream> 
@@ -32,7 +33,7 @@
 #define MYSQL_DB		"agile3_test"
 #define MYSQL_HOST		"mysql"
 #define QUERY_DATE_DA		"2015-7-1"
-#define QUERY_DATE_A		"2016-7-27"
+#define QUERY_DATE_A		"2016-9-27"
 #define QUERY_TYPE		"FLG"
 
 #define ORIGIN_BASE_PATH	"/tmp/"
@@ -75,11 +76,13 @@ int main (int   argc, char *argv[])
 	char 	nCorFile[1000];
 	char 	nCorFileTemp[1000];
 	char 	nDriftFile[1000];
+	char 	nIndexFile[1000];
 	char 	time_min[50];
 	char 	time_max[50];
 	char 	cmd[3000];
 	char 	update_cmd[3000];
 	char 	select_cmd[3000];
+	char 	index_val[3000];
 	
 	int	cont		= 0;
 	int	contUpdate	= 0;
@@ -95,9 +98,11 @@ int main (int   argc, char *argv[])
 	memset( nCorFile, '\0', sizeof(nCorFile) );
 	memset( nCorFileTemp, '\0', sizeof(nCorFileTemp) );
 	memset( nDriftFile, '\0', sizeof(nDriftFile) );
+	memset( nIndexFile, '\0', sizeof(nIndexFile) );
 	memset( cmd, '\0', sizeof(cmd) );
 	memset( update_cmd, '\0', sizeof(update_cmd) );
 	memset( select_cmd, '\0', sizeof(select_cmd) );
+	memset( index_val, '\0', sizeof(index_val) );
 
 	/* controllo parametri da linea di comando */
 	if(argc>1)
@@ -199,7 +204,7 @@ int main (int   argc, char *argv[])
 	      printf("\nStep 1: Prendi elenco file da correggere dal db-mysql.\n");
 	      /* Lancio select su mysqldb */
 	      //sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND Filename='PKP048495_1_3901_000_1473040447.flg.gz' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE,MYSQL_DB,LISTA_FILE_CORR);
-	      sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
+	      sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' AND id='3457416' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
 	      cout << "	Command: " << cmd << endl;
 	      
 	      result = exec(cmd);
@@ -243,11 +248,21 @@ int main (int   argc, char *argv[])
 		      printf("\n	Step 1.1: Individua file DRIFT con id '%s','%s/%s/LV1corr/%s/VC1/DRIFT-PKP%s_1_33XY_000.lv1.cor'.\n",s_id_drift.c_str(),ORIGIN_DRIFT_BASE_PATH,AGILES2_STORAGE,s_id_drift.c_str(),s_id_drift.c_str());
 		      sprintf(nDriftFile,"%s/%s/LV1corr/%s/VC1/DRIFT-PKP%s_1_33XY_000.lv1.cor",ORIGIN_DRIFT_BASE_PATH,AGILES2_STORAGE,s_id_drift.c_str(),s_id_drift.c_str());
 		      
+		      /* Nome file */
+		      string s_namefile = s1.substr(pos);
+		      printf("\n	Step 1.2: Nome file '%s' \n",s_namefile.c_str());
+		      
+		      /* Nome index-file destinazione whitout .gz */
+		      pos = s1.find(".gz");
+		      string s_namefileNoGz = s1.substr(0,pos);
+		      sprintf(nIndexFile,"%s%s.index",nDestinazionePath,s_namefileNoGz.c_str());
+		      
+		      
 		      if(exists_file(nDriftFile))
 		      {
 			if(exists_file(nSorgenteFile))
 			{
-			    printf("\n	Step 1.2: Applica correttore.\n");
+			    printf("\n	Step 1.3: Applica correttore.\n");
 			    
 			    #ifdef COLLAUDO
 				sprintf (cmd, "cp %s %s",nSorgenteFile,nCorFileTemp); 
@@ -279,6 +294,7 @@ int main (int   argc, char *argv[])
 					  {
 					      memset( time_min, '\0', sizeof(time_min) );
 					      memset( time_max, '\0', sizeof(time_max) );
+					      memset( index_val, '\0', sizeof(index_val) );
 	
 					      printf("\n	Step 1.6: Prendi key dal file fits.\n");
 					  
@@ -320,7 +336,16 @@ int main (int   argc, char *argv[])
 					      out << update_cmd;
 					      out_select << select_cmd;
 					      
+					      /* Creo file indice nomefile.index*/
+					      printf("\n	Step 1.7: Creo file indice '%s'=> '%s %s %s %s'  \n",nIndexFile,s_namefile.c_str(),time_min,time_max,QUERY_TYPE);
+					      sprintf(index_val,"%s %s %s %s",s_namefile.c_str(),time_min,time_max,QUERY_TYPE);
+					      
+					      ofstream out_index(nIndexFile);
+					      out_index << index_val;
+					      out_index.close();
+					      
 					      contUpdate++;
+					      
 					  }
 					  else
 					  {
@@ -357,6 +382,8 @@ int main (int   argc, char *argv[])
 		      }
 		      printf("--------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 		  }
+		  
+		  fflush(stdout);
 		  
 		  if(contUpdate>0)
 		  {
