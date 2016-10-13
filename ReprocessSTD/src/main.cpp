@@ -90,6 +90,7 @@ int main (int   argc, char *argv[])
 	int	resultUnlink	= 0;
 	int	resultCorr	= 0;
 	bool	enableClone	= false;
+	bool	enableCorr	= false;
 	bool	updateDB	= false;
 	
 	memset( nSorgentePath, '\0', sizeof(nSorgentePath) );
@@ -117,11 +118,12 @@ int main (int   argc, char *argv[])
 		    if(param.compare("-HELP")==0)
 		    {
 			cout << "Elenco parametri..." << endl;
-			cout << "	-LISTA    : crea la lista dei file da driffare." << endl;
-			cout << "	-CLONE    : esegue il clone dei dati." << endl;
-			cout << "	-UDATDEDB : esegue l'aggiornamento del database." << endl;
-			cout << "	-SHOW 	  : visualizza i parametri di default." << endl;
-			cout << "	-HELP 	  : visualizza l'help." << endl;
+			cout << "	-LISTA      : crea la lista dei file da driffare." << endl;
+			cout << "	-CLONE      : esegue il clone dei dati." << endl;
+			cout << "	-UDATDEDB   : esegue l'aggiornamento del database." << endl;
+			cout << "	-SHOW       : visualizza i parametri di default." << endl;
+			cout << "	-CORREZIONE : esegue la correzione." << endl;
+			cout << "	-HELP       : visualizza l'help." << endl;
 			exit(0);
 		    }
 		    else if(param.compare("-LISTA")==0)
@@ -151,7 +153,8 @@ int main (int   argc, char *argv[])
 			
 			cout << "Abilito scrittura date su DB..." << endl;
 			updateDB=true;
-		    }else if(param.compare("-SHOW")==0)
+		    }
+		    else if(param.compare("-SHOW")==0)
 		    {
 			
 			cout << "Parametri di default:" << endl;
@@ -187,12 +190,22 @@ int main (int   argc, char *argv[])
 
 			exit(0);
 		    }
+		    else if(param.compare("-CORREZIONE")==0)
+		    {
+			enableCorr=true;
+		    }
 		 }break;
 		 
 		 default: {
-		     cout << "Non definito" << endl;
+		     printf("Parametro non definito !!!!\n");
 		}
 	    }
+	}
+	
+	if(!enableCorr)
+	{
+	    printf("Parametro non definito !!!!\n");
+	    exit(0);
 	}
 	
 	sprintf(nSorgentePath,"%s/%s",ORIGIN_BASE_PATH,AGILES3_STORAGE);
