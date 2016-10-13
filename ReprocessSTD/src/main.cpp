@@ -117,10 +117,24 @@ int main (int   argc, char *argv[])
 		    if(param.compare("-HELP")==0)
 		    {
 			cout << "Elenco parametri..." << endl;
+			cout << "	-LISTA    : crea la lista dei file da driffare." << endl;
 			cout << "	-CLONE    : esegue il clone dei dati." << endl;
 			cout << "	-UDATDEDB : esegue l'aggiornamento del database." << endl;
 			cout << "	-SHOW 	  : visualizza i parametri di default." << endl;
 			cout << "	-HELP 	  : visualizza l'help." << endl;
+			exit(0);
+		    }
+		    else if(param.compare("-LISTA")==0)
+		    {
+			printf("****************** Start Lista STD!!! *******************\n\n\n");
+			
+			/*1 Luglio 2015 al 27 Luglio 2016*/
+			printf("\nStep 1: Prendi elenco file da correggere dal db-mysql.\n");
+			/* Lancio select su mysqldb */
+			sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
+			cout << "	Command: " << cmd << endl;
+			result = exec(cmd);
+			printf("****************** Stop Lista STD!!! *******************\n\n\n");
 			exit(0);
 		    }
 		    else if(param.compare("-CLONE")==0)
@@ -201,26 +215,27 @@ int main (int   argc, char *argv[])
 	      printf("Step 0: Verifica environment Heasoft.\n");
 	      cout << "---> HEADAS = " << headas << endl;
 	      /*1 Luglio 2015 al 27 Luglio 2016*/
-	      printf("\nStep 1: Prendi elenco file da correggere dal db-mysql.\n");
+	      //printf("\nStep 1: Prendi elenco file da correggere dal db-mysql.\n");
 	      /* Lancio select su mysqldb */
 	      //sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND id='3457416' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE,MYSQL_DB,LISTA_FILE_CORR);
-	      sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
-	      cout << "	Command: " << cmd << endl;
+	      //sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
+	      //cout << "	Command: " << cmd << endl;
 	      
 	      result = exec(cmd);
 	      
 	      ifstream f(LISTA_FILE_CORR); //nome del file da aprire, si può mettere anche il percorso (es C:\\file.txt)
-	      ofstream out(UPDATE_DB_FILE);
-	      ofstream out_select(SELECT_DB_FILE);
 	      
-	      
+
 	      if(!f) 
 	      {
 		  printf("ERROR: Il file csv '%s' non è stato creato correttamente!\n",LISTA_FILE_CORR);
+		  printf("       Lancia il comando reprocess_std -LISTA\n");
 		  return -1;
 	      }
 	      else
 	      {
+		  ofstream out(UPDATE_DB_FILE);
+		  ofstream out_select(SELECT_DB_FILE);
 		  /* Scorro l'elenco dei record nel file csv generato dal'interrogazione al mysqldb: LISTA_FILE_CORR  */
 		  while(getline(f, s)) //fino a quando c'è qualcosa da leggere ..
 		  {
@@ -480,15 +495,16 @@ void clonaSorgenti()
 	printf("\nStep 0: Clona dati.\n");
 	/* Lancio select su mysqldb */
 	//sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND Filename='PKP048495_1_3901_000_1473040447.flg.gz' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE,MYSQL_DB,LISTA_FILE_CORR);
-	sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s ",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
-	cout << "	Command: " << cmd << endl;
-	result = exec(cmd);
+	//sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s ",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
+	//cout << "	Command: " << cmd << endl;
+	//result = exec(cmd);
 	
 	ifstream f(LISTA_FILE_CORR);
 	    
 	if(!f) 
 	{
 	    printf("ERROR: Il file csv '%s' non è stato creato correttamente!\n",LISTA_FILE_CORR);
+	    printf("       Lancia il comando reprocess_std -LISTA\n");
 	}
 	else
 	{
