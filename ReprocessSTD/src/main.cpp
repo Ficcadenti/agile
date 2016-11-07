@@ -147,6 +147,14 @@ int main (int   argc, char *argv[])
 			printf("Destinazione: '%s'\n",DEST_BASE_PATH);
 			
 			enableClone=true;
+			if(enableClone==true)
+			{
+			  printf("****************** Start Clone STD!!! *******************\n\n\n");
+			  clonaSorgenti();
+			  printf("****************** Finish Clone STD!!! *******************\n\n\n");
+			  exit(0);
+			}
+	    
 		    }
 		    else if(param.compare("-UPDATEDB")==0)
 		    {
@@ -216,13 +224,6 @@ int main (int   argc, char *argv[])
 	
 	if(headas != NULL) /* Se l'ambiente Heasoft è settato procedi con la correzione */
 	{
-	    if(enableClone==true)
-	    {
-	      printf("****************** Start Clone STD!!! *******************\n\n\n");
-	      clonaSorgenti();
-	      printf("****************** Finish Clone STD!!! *******************\n\n\n");
-	    }
-	    else
 	    {  
 	      printf("****************** Start Reprocess STD!!! *******************\n\n\n");
 	      printf("Step 0: Verifica environment Heasoft.\n");
