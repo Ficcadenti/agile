@@ -27,17 +27,17 @@
 #include <memory>
 #include <algorithm>
 
-
+/* per collaudo
 #define MYSQL_USER		"root"
 #define MYSQL_PASSWORD		"asdctoor"
 #define MYSQL_DB		"agile3_test"
 #define MYSQL_HOST		"mysql"
 #define QUERY_DATE_DA		"2015-7-1"
-#define QUERY_DATE_A		"2016-7-27"
+#define QUERY_DATE_A		"2016-11-27"
 #define QUERY_TYPE		"FLG"
 
-#define ORIGIN_BASE_PATH	"/tmp/"
-#define DEST_BASE_PATH		"/tmp/"
+#define ORIGIN_BASE_PATH	"/storage1/"
+#define DEST_BASE_PATH		"/storage1/"
 
 #define ORIGIN_DRIFT_BASE_PATH	"/storage1/"
 #define CLONE_ORIGIN_BASE_PATH	"/storage1/"
@@ -53,6 +53,35 @@
 #define DATE_END 		"DATE-END"
 #define TSTART 			"TSTART"
 #define TSTOP	 		"TSTOP"
+*/
+
+#define MYSQL_USER              "adcadm"
+#define MYSQL_PASSWORD          "adcadm"
+#define MYSQL_DB                "agile3"
+#define MYSQL_HOST              "agiles9"
+#define QUERY_DATE_DA           "2015-7-1"
+#define QUERY_DATE_A            "2016-7-27"
+#define QUERY_TYPE              "FLG"
+
+#define ORIGIN_BASE_PATH        "/tmp/"
+#define DEST_BASE_PATH          "/tmp/"
+
+#define ORIGIN_DRIFT_BASE_PATH  "/storage1/"
+#define CLONE_ORIGIN_BASE_PATH  "/storage1/"
+#define CLONE_BASE_PATH         "/tmp/"
+
+#define AGILES2_STORAGE         "agile/agile2/"
+#define AGILES3_STORAGE         "agile/agile3/"
+#define LISTA_FILE_CORR         "file_corr.csv"
+#define UPDATE_DB_FILE          "update_db.sql"
+#define SELECT_DB_FILE          "select_db.sql"
+#define UPDATE_REPORT_FILE      "new_time.csv"
+#define DATE                    "DATE"
+#define DATE_END                "DATE-END"
+#define TSTART                  "TSTART"
+#define TSTOP                   "TSTOP"
+
+
 
 #define EXEC_DRIFT		"/home/adc/ADC/correction/bin/cor_drift"
 
@@ -120,7 +149,7 @@ int main (int   argc, char *argv[])
 			cout << "Elenco parametri..." << endl;
 			cout << "	-LISTA      : crea la lista dei file da driffare." << endl;
 			cout << "	-CLONE      : esegue il clone dei dati." << endl;
-			cout << "	-UDATDEDB   : esegue l'aggiornamento del database." << endl;
+			cout << "	-UPDATDEDB   : esegue l'aggiornamento del database." << endl;
 			cout << "	-SHOW       : visualizza i parametri di default." << endl;
 			cout << "	-CORREZIONE : esegue la correzione." << endl;
 			cout << "	-HELP       : visualizza l'help." << endl;
@@ -158,9 +187,33 @@ int main (int   argc, char *argv[])
 		    }
 		    else if(param.compare("-UPDATEDB")==0)
 		    {
+			ifstream f(SELECT_DB_FILE); //nome del file da aprire
+	     
+			if(!f) 
+			{
+			    printf("ERROR: Il file '%s' non è stato creato correttamente!\n",SELECT_DB_FILE);
+			    printf("       Lancia il comando reprocess_std -CORREZIONE\n");
+			    return -1;
+			}
+			else
+			{
+			      cout << "Abilito scrittura date su DB..." << endl;
+			      updateDB=true;
+			      printf("Step 1: Crea report update.\n");  
+			      sprintf(cmd,"mysql -u %s -p'%s' -h %s %s -N < %s > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_DB,SELECT_DB_FILE,UPDATE_REPORT_FILE); 
+			      printf("	Command: %s\n",cmd);
+			      result = exec(cmd);
+			      
+			      if(updateDB==true)
+			      {
+				      printf("Step 1: Aggiorna mysqldb.\n");
+				      sprintf(cmd,"mysql -u %s -p'%s' -h %s %s < %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_DB,UPDATE_DB_FILE);
+				      printf("	Command: %s\n",cmd);
+				      result = exec(cmd);
+			      }
+			}
 			
-			cout << "Abilito scrittura date su DB..." << endl;
-			updateDB=true;
+			exit(0);
 		    }
 		    else if(param.compare("-SHOW")==0)
 		    {
