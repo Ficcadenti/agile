@@ -27,8 +27,9 @@
 #include <memory>
 #include <algorithm>
 
-//per collaudo
 /*
+//per collaudo
+
 #define MYSQL_USER		"root"
 #define MYSQL_PASSWORD		"asdctoor"
 #define MYSQL_DB		"agile3_test"
@@ -59,6 +60,9 @@
 #define COLLAUDO		1
 */
 
+
+
+// produzione
 #define MYSQL_USER              "adcadm"
 #define MYSQL_PASSWORD          "adcadm"
 #define MYSQL_DB                "agile3"
@@ -152,14 +156,14 @@ int main (int   argc, char *argv[])
 		    if(param.compare("-HELP")==0)
 		    {
 			cout << "Elenco parametri..." << endl;
-			cout << "	-LISTA      : crea la lista dei file da driffare." << endl;
-			cout << "	-CLONE      : esegue il clone dei dati." << endl;
+			cout << "	-LISTA       : crea la lista dei file da driffare." << endl;
+			cout << "	-CLONE       : esegue il clone dei dati." << endl;
 			cout << "	-UPDATDEDB   : esegue l'aggiornamento del database." << endl;
-			cout << "	-SHOW       : visualizza i parametri di default." << endl;
-			cout << "	-CORREZIONE : esegue la correzione." << endl;
-			cout << "	-DELCOL     : elimina colonna TIMEORI." << endl;
-			cout << "	-LISTADELCOL: crea la lista dei file per eliminare colonna TIMEORI." << endl;
-			cout << "	-HELP       : visualizza l'help." << endl;
+			cout << "	-SHOW        : visualizza i parametri di default." << endl;
+			cout << "	-CORREZIONE  : esegue la correzione." << endl;
+			cout << "	-DELCOL      : elimina colonna TIMEORI." << endl;
+			cout << "	-LISTADELCOL : crea la lista dei file per eliminare colonna TIMEORI." << endl;
+			cout << "	-HELP        : visualizza l'help." << endl;
 			exit(0);
 		    }
 		    else if(param.compare("-DELCOL")==0)
@@ -660,6 +664,7 @@ void delcoltimeori()
 	char 	nFileDest[1000];
 	
 	int	resultRename	= 0;
+	int 	cont 		= 0;
 	
 
 	memset( nFileSorg, '\0', sizeof(nFileSorg) );
@@ -678,6 +683,8 @@ void delcoltimeori()
 	    /* Scorro l'elenco dei record nel file csv generato dal'interrogazione al mysqldb: LISTA_FILE_CORR  */
 	    while(getline(f, s)) //fino a quando c'è qualcosa da leggere ..
 	    {
+		cont++; 
+		printf("	Step 1: Elaboro il file N°%d '%s'\n",cont,s.c_str());
 		sprintf(cmd,"fverify %s | grep %s",s.c_str(),TIMEORI);
 		printf("	Command: %s\n",cmd);
 		result = exec(cmd);
@@ -686,7 +693,7 @@ void delcoltimeori()
 		    if(checkGzipFile(s)==false)
 		    {
 			sprintf(cmd,"fdelcol %s[1] %s YES YES",s.c_str(),TIMEORI);
-			result = exec(cmd);
+			/*result = exec(cmd);
 			printf("		Command: %s\n",cmd);
 			
 			string s1 = s.substr(0,s.length()-3);
@@ -702,7 +709,7 @@ void delcoltimeori()
 			    sprintf(cmd,"gzip %s",nFileDest);
 			    result = exec(cmd);
 			    printf("		Command: %s\n",cmd);
-			}
+			}*/
 		    }
 		    else
 		    {
