@@ -27,7 +27,8 @@
 #include <memory>
 #include <algorithm>
 
-/* per collaudo
+//per collaudo
+/*
 #define MYSQL_USER		"root"
 #define MYSQL_PASSWORD		"asdctoor"
 #define MYSQL_DB		"agile3_test"
@@ -36,8 +37,8 @@
 #define QUERY_DATE_A		"2016-11-27"
 #define QUERY_TYPE		"FLG"
 
-#define ORIGIN_BASE_PATH	"/storage1/"
-#define DEST_BASE_PATH		"/storage1/"
+#define ORIGIN_BASE_PATH	"/tmp/"
+#define DEST_BASE_PATH		"/tmp/"
 
 #define ORIGIN_DRIFT_BASE_PATH	"/storage1/"
 #define CLONE_ORIGIN_BASE_PATH	"/storage1/"
@@ -53,6 +54,9 @@
 #define DATE_END 		"DATE-END"
 #define TSTART 			"TSTART"
 #define TSTOP	 		"TSTOP"
+#define TIMEORI			"TIMEORI"
+
+#define COLLAUDO		1
 */
 
 #define MYSQL_USER              "adcadm"
@@ -60,11 +64,11 @@
 #define MYSQL_DB                "agile3"
 #define MYSQL_HOST              "agiles9"
 #define QUERY_DATE_DA           "2015-7-1"
-#define QUERY_DATE_A            "2016-7-27"
+#define QUERY_DATE_A            "2016-11-3"
 #define QUERY_TYPE              "FLG"
 
-#define ORIGIN_BASE_PATH        "/tmp/"
-#define DEST_BASE_PATH          "/tmp/"
+#define ORIGIN_BASE_PATH        "/storage1/"
+#define DEST_BASE_PATH          "/storage1/"
 
 #define ORIGIN_DRIFT_BASE_PATH  "/storage1/"
 #define CLONE_ORIGIN_BASE_PATH  "/storage1/"
@@ -80,12 +84,11 @@
 #define DATE_END                "DATE-END"
 #define TSTART                  "TSTART"
 #define TSTOP                   "TSTOP"
-
+#define TIMEORI			"TIMEORI"
 
 
 #define EXEC_DRIFT		"/home/adc/ADC/correction/bin/cor_drift"
 
-//#define COLLAUDO		1
 
 using namespace std;
 
@@ -93,6 +96,8 @@ bool exists_file (const string& name);
 string exec(const char* cmd);
 string trim(string& str);
 void clonaSorgenti();
+void delcoltimeori();
+bool checkGzipFile(string s);
 
 int main (int   argc, char *argv[])
 {
@@ -152,7 +157,23 @@ int main (int   argc, char *argv[])
 			cout << "	-UPDATDEDB   : esegue l'aggiornamento del database." << endl;
 			cout << "	-SHOW       : visualizza i parametri di default." << endl;
 			cout << "	-CORREZIONE : esegue la correzione." << endl;
+			cout << "	-DELCOL     : elimina colonna TIMEORI." << endl;
 			cout << "	-HELP       : visualizza l'help." << endl;
+			exit(0);
+		    }
+		    else if(param.compare("-DELCOL")==0)
+		    {
+			printf("****************** Start Delete column TIMEORI STD!!! *******************\n\n\n");
+			
+			/*1 Luglio 2015 al 27 Luglio 2016*/
+			printf("\nStep 1: Prendi elenco file da correggere dal db-mysql.\n");
+			/* Lancio select su mysqldb */
+			//sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT CONCAT('%s%s',path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND Filename='PKP048495_1_3901_000_1473040447.flg.gz' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,ORIGIN_BASE_PATH,AGILES3_STORAGE,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
+			sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT CONCAT('%s%s',path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,ORIGIN_BASE_PATH,AGILES3_STORAGE,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
+			cout << "	Command: " << cmd << endl;
+			result = exec(cmd);
+			delcoltimeori();
+			printf("****************** Stop Delete column TIMEORI  STD!!! *******************\n\n\n");
 			exit(0);
 		    }
 		    else if(param.compare("-LISTA")==0)
@@ -162,6 +183,7 @@ int main (int   argc, char *argv[])
 			/*1 Luglio 2015 al 27 Luglio 2016*/
 			printf("\nStep 1: Prendi elenco file da correggere dal db-mysql.\n");
 			/* Lancio select su mysqldb */
+			//sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND Filename='PKP048495_1_3901_000_1473040447.flg.gz' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
 			sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT id,CONCAT(path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
 			cout << "	Command: " << cmd << endl;
 			result = exec(cmd);
@@ -621,3 +643,89 @@ void clonaSorgenti()
 	}	  
 }
 
+void delcoltimeori()
+{
+	string 	result;
+	string 	s;
+	char 	cmd[3000];
+	char 	nFileSorg[1000];
+	char 	nFileDest[1000];
+	
+	int	resultRename	= 0;
+	
+
+	memset( nFileSorg, '\0', sizeof(nFileSorg) );
+	memset( nFileDest, '\0', sizeof(nFileDest) );
+	memset( cmd, '\0', sizeof(cmd) );
+	
+	ifstream f(LISTA_FILE_CORR);
+	    
+	if(!f) 
+	{
+	    printf("ERROR: Il file csv '%s' non è stato creato correttamente!\n",LISTA_FILE_CORR);
+	    printf("       Lancia il comando reprocess_std -LISTA\n");
+	}
+	else
+	{
+	    /* Scorro l'elenco dei record nel file csv generato dal'interrogazione al mysqldb: LISTA_FILE_CORR  */
+	    while(getline(f, s)) //fino a quando c'è qualcosa da leggere ..
+	    {
+		sprintf(cmd,"fverify %s | grep %s",s.c_str(),TIMEORI);
+		printf("	Command: %s\n",cmd);
+		result = exec(cmd);
+		if(result.length()>0)
+		{  
+		    if(checkGzipFile(s)==false)
+		    {
+			sprintf(cmd,"fdelcol %s[1] %s YES YES",s.c_str(),TIMEORI);
+			result = exec(cmd);
+			printf("		Command: %s\n",cmd);
+			
+			string s1 = s.substr(0,s.length()-3);
+			
+			sprintf(nFileSorg,"%s",s.c_str());
+			sprintf(nFileDest,"%s",s1.c_str());
+			
+			printf("		Command: rename %s %s\n",nFileSorg,nFileDest);
+			resultRename = rename( nFileSorg , nFileDest );
+					      
+			if ( resultRename == 0 ) 
+			{
+			    sprintf(cmd,"gzip %s",nFileDest);
+			    result = exec(cmd);
+			    printf("		Command: %s\n",cmd);
+			}
+		    }
+		    else
+		    {
+			printf("	Il file '%s' è compresso. Lo salto.\n",s.c_str());
+		    }
+		}
+		else
+		{
+		    printf("	La colonna '%s' non è presente. Lo salto.\n",TIMEORI);
+		}
+		
+		printf("\n");
+		
+	    }
+	}
+}
+
+bool checkGzipFile(string s)
+{
+	string 	result;
+	char 	cmd[3000];
+
+	memset( cmd, '\0', sizeof(cmd) );
+	
+	sprintf(cmd,"file %s | grep gzip",s.c_str());
+	printf("	Command: %s\n",cmd);
+	result = exec(cmd);
+	
+	if(result.length()>0) 
+	  return true;
+	else
+	  return false;
+	
+}
