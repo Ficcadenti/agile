@@ -158,12 +158,20 @@ int main (int   argc, char *argv[])
 			cout << "	-SHOW       : visualizza i parametri di default." << endl;
 			cout << "	-CORREZIONE : esegue la correzione." << endl;
 			cout << "	-DELCOL     : elimina colonna TIMEORI." << endl;
+			cout << "	-LISTADELCOL: crea la lista dei file per eliminare colonna TIMEORI." << endl;
 			cout << "	-HELP       : visualizza l'help." << endl;
 			exit(0);
 		    }
 		    else if(param.compare("-DELCOL")==0)
 		    {
 			printf("****************** Start Delete column TIMEORI STD!!! *******************\n\n\n");
+			delcoltimeori();
+			printf("****************** Stop Delete column TIMEORI  STD!!! *******************\n\n\n");
+			exit(0);
+		    }
+		    else if(param.compare("-LISTADELCOL")==0)
+		    {
+			printf("****************** Start Lista STD STD!!! *******************\n\n\n");
 			
 			/*1 Luglio 2015 al 27 Luglio 2016*/
 			printf("\nStep 1: Prendi elenco file da correggere dal db-mysql.\n");
@@ -172,10 +180,10 @@ int main (int   argc, char *argv[])
 			sprintf(cmd,"mysql -u %s -p'%s' -h %s -e \"SELECT CONCAT('%s%s',path,'/',Filename) as fName from PIPE_ArchivedFile WHERE Type = '%s' AND datemin >= '%s' AND datemax <= '%s' ORDER BY id\" %s -N | sed 's/\t/,/g' > %s",MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,ORIGIN_BASE_PATH,AGILES3_STORAGE,QUERY_TYPE,QUERY_DATE_DA,QUERY_DATE_A,MYSQL_DB,LISTA_FILE_CORR);
 			cout << "	Command: " << cmd << endl;
 			result = exec(cmd);
-			delcoltimeori();
-			printf("****************** Stop Delete column TIMEORI  STD!!! *******************\n\n\n");
+			printf("****************** Stop Lista STD TIMEORI  STD!!! *******************\n\n\n");
 			exit(0);
 		    }
+		    
 		    else if(param.compare("-LISTA")==0)
 		    {
 			printf("****************** Start Lista STD!!! *******************\n\n\n");
