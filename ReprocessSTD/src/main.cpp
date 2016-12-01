@@ -29,6 +29,7 @@
 
 /*
 //per collaudo
+#define COLLAUDO		1
 
 #define MYSQL_USER		"root"
 #define MYSQL_PASSWORD		"asdctoor"
@@ -55,9 +56,7 @@
 #define DATE_END 		"DATE-END"
 #define TSTART 			"TSTART"
 #define TSTOP	 		"TSTOP"
-#define TIMEORI			"TIMEORI"
-
-#define COLLAUDO		1
+#define TIMEORI			"EVSTATUS"
 */
 
 
@@ -68,7 +67,7 @@
 #define MYSQL_DB                "agile3"
 #define MYSQL_HOST              "agiles9"
 #define QUERY_DATE_DA           "2015-7-1"
-#define QUERY_DATE_A            "2016-11-3"
+#define QUERY_DATE_A            "2016-08-05"
 #define QUERY_TYPE              "FLG"
 
 #define ORIGIN_BASE_PATH        "/storage1/"
@@ -664,6 +663,7 @@ void delcoltimeori()
 	char 	nFileDest[1000];
 	
 	int	resultRename	= 0;
+	int	resul		= 0;
 	int 	cont 		= 0;
 	
 
@@ -692,24 +692,36 @@ void delcoltimeori()
 		{  
 		    if(checkGzipFile(s)==false)
 		    {
-			sprintf(cmd,"fdelcol %s[1] %s YES YES",s.c_str(),TIMEORI);
-			/*result = exec(cmd);
+			sprintf(cmd,"cp %s %s.ORIG",s.c_str(),s.c_str());
+			resul = system(cmd);
 			printf("		Command: %s\n",cmd);
 			
-			string s1 = s.substr(0,s.length()-3);
-			
-			sprintf(nFileSorg,"%s",s.c_str());
-			sprintf(nFileDest,"%s",s1.c_str());
-			
-			printf("		Command: rename %s %s\n",nFileSorg,nFileDest);
-			resultRename = rename( nFileSorg , nFileDest );
-					      
-			if ( resultRename == 0 ) 
+			if(resul==0)
 			{
-			    sprintf(cmd,"gzip %s",nFileDest);
-			    result = exec(cmd);
-			    printf("		Command: %s\n",cmd);
-			}*/
+			  sprintf(cmd,"fdelcol %s[1] %s YES YES",s.c_str(),TIMEORI);
+			  printf("		Command: %s\n",cmd);
+			  
+			  /*result = exec(cmd);
+			  
+			  string s1 = s.substr(0,s.length()-3);
+			  
+			  sprintf(nFileSorg,"%s",s.c_str());
+			  sprintf(nFileDest,"%s",s1.c_str());
+			  
+			  printf("		Command: rename %s %s\n",nFileSorg,nFileDest);
+			  resultRename = rename( nFileSorg , nFileDest );
+						
+			  if ( resultRename == 0 ) 
+			  {
+			      sprintf(cmd,"gzip %s",nFileDest);
+			      result = exec(cmd);
+			      printf("		Command: %s\n",cmd);
+			  }*/
+			}
+			else
+			{
+			    printf("	Errore nella copia del file '%s'.\n",s.c_str());
+			}
 		    }
 		    else
 		    {
